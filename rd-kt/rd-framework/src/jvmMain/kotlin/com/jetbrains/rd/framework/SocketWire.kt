@@ -60,6 +60,7 @@ class SocketWire {
     companion object {
         val timeout: Duration = Duration.ofMillis(500)
         private const val ack_msg_len: Int = -1
+        private const val heartbeat_msg_len = -2
         private const val pkg_header_len = 12
         const val disconnectedPauseReason = "Socket not connected"
 
@@ -87,7 +88,7 @@ class SocketWire {
         protected val lock = Object()
 
         private var maxReceivedSeqn : Long = 0
-
+        private var lastReceivedHeartbeat = 0L
 
         init {
 
@@ -164,6 +165,10 @@ class SocketWire {
             return true
         }
 
+        private fun receiveHeartbeat() {
+            // TODO: Think about the thread safety
+            lastReceivedHeartbeat = System.nanoTime()
+        }
 
         inner class PkgInputStream(private val stream: InputStream) : InputStream() {
             var pkg: ByteArray = ByteArray(0)
@@ -177,24 +182,26 @@ class SocketWire {
                     val len = stream.readInt32() ?: return -1
                     val seqn = stream.readInt64() ?: return -1
 
+                    when (len) {
+                        ack_msg_len -> sendBuffer.acknowledge(seqn)
+                        heartbeat_msg_len -> receiveHeartbeat()
+                            // TODO: Send the heartbeats automatically
+                            // TODO: Reaction if the heartbeats weren't received for a while
+                        else -> {
+                            require(len > 0) {"len > 0: $len"}
+                            require (len < 300_000_000) { "Possible OOM: array_len=$len(0x${len.toString(16)})" }
 
-                    if (len == ack_msg_len)
-                        sendBuffer.acknowledge(seqn)
-                    else {
-                        require(len > 0) {"len > 0: $len"}
-                        require (len < 300_000_000) { "Possible OOM: array_len=$len(0x${len.toString(16)})" }
+                            pkg = ByteArray(len)
+                            pos = 0
+                            stream.readByteArray(pkg)
 
-                        pkg = ByteArray(len)
-                        pos = 0
-                        stream.readByteArray(pkg)
-
-                        if (seqn > maxReceivedSeqn) {
-                            maxReceivedSeqn = seqn
-                            return pkg[pos++].toInt() and 0xff
-                        } else
-                            sendAck(seqn)
+                            if (seqn > maxReceivedSeqn) {
+                                maxReceivedSeqn = seqn
+                                return pkg[pos++].toInt() and 0xff
+                            } else
+                                sendAck(seqn)
+                        }
                     }
-
                 }
             }
 
