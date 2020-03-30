@@ -14,9 +14,11 @@ repositories {
 }
 
 dependencies {
+    @Suppress("DEPRECATION")
     compile(project(":rd-core:"))
     implementation(gradleApi())
     testImplementation(project(":rd-framework"))
+    @Suppress("DEPRECATION")
     compile("org.jetbrains.kotlin:kotlin-compiler:${kotlinVersion}")
 }
 

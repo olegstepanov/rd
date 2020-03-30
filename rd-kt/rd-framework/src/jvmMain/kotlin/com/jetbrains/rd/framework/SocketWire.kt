@@ -20,6 +20,7 @@ import java.time.Duration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread
+import kotlin.time.ExperimentalTime
 
 private fun InputStream.readByteArray(a : ByteArray): Boolean {
     var pos = 0
@@ -129,9 +130,10 @@ class SocketWire {
             }
         }
 
+        @UseExperimental(ExperimentalTime::class)
         private fun startHeartbeat() = GlobalScope.launch {
             while (true) {
-                delay(heartBeatInterval.toMillis())
+                delay(heartBeatInterval.toLongMilliseconds())
                 ping()
                 logger.trace { "$id: sent PING" }
             }
@@ -289,11 +291,6 @@ class SocketWire {
         private val ackPkgHeader = createAbstractBuffer()
 
         /**
-         * Ping's interval and not actually detection's timeout.
-         */
-        val heartBeatInterval: Duration = Duration.ofMillis(500)
-
-        /**
          * Timestamp of this wire which increases at intervals of [heartBeatInterval].
          */
         private var currentTimeStamp = 0
@@ -440,6 +437,7 @@ class SocketWire {
     }
 
 
+    @UseExperimental(ExperimentalTime::class)
     class Server internal constructor(lifetime : Lifetime, scheduler: IScheduler, ss: ServerSocket, optId: String? = null, allowReconnect: Boolean) : Base(optId ?:"ServerSocket", lifetime, scheduler) {
         val port : Int = ss.localPort
 
