@@ -55,7 +55,7 @@ namespace rd {
 			mutable Buffer ack_buffer{PACKAGE_HEADER_LENGTH};
 
 			/**
-			 * \brief Timestamp of this wire which increases at intervals of [heartBeatInterval].
+			 * \brief Timestamp of this wire which increases at intervals of [heartbeatInterval].
 			 */
 			mutable int32_t current_timestamp = 0;
 
@@ -70,7 +70,7 @@ namespace rd {
 			mutable int32_t counterpart_acknowledge_timestamp = 0;
 
 			mutable Buffer ping_pkg_header{PACKAGE_HEADER_LENGTH};
-			
+
 			mutable sequence_number_t max_received_seqn = 0;
 			mutable Buffer send_package_header{PACKAGE_HEADER_LENGTH};
 
@@ -94,8 +94,8 @@ namespace rd {
 
 		public:
 			static constexpr int32_t MaximumHeartbeatDelay = 3;
-			std::chrono::milliseconds heartBeatInterval = std::chrono::milliseconds(500);
-			
+			std::chrono::milliseconds heartbeatInterval = std::chrono::milliseconds(500);
+
 			//region ctor/dtor
 
 			Base(std::string id, Lifetime lifetime, IScheduler *scheduler);
@@ -125,7 +125,7 @@ namespace rd {
 			CSimpleSocket *get_socket_provider() const;
 
 			void ping() const;
-			
+
 			bool send_ack(sequence_number_t seqn) const;
 		};
 

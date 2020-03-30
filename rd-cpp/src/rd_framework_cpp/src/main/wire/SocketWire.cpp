@@ -123,7 +123,7 @@ namespace rd {
 		const auto status = heartbeat.wait_for(timeout);
 
 		logger.debug(this->id + ": waited for heartbeat to stop with status: " + to_string(status));
-		
+
 		if (!socket_provider->Shutdown(CSimpleSocket::Both)) {
 			//double close?
 			logger.warn(this->id + ": possibly double close after disconnect");
@@ -137,7 +137,7 @@ namespace rd {
 	std::future<void> SocketWire::Base::start_heartbeat(Lifetime lifetime) {
 		return std::async([this, lifetime] {
 			while (!lifetime->is_terminated()) {
-				std::this_thread::sleep_for(heartBeatInterval);
+				std::this_thread::sleep_for(heartbeatInterval);
 				ping();
 			}
 		});
@@ -237,7 +237,7 @@ namespace rd {
 
 	int32_t SocketWire::Base::read_package() const {
 		receive_pkg.rewind();
-		
+
 		const auto pair = read_header();
 		if (pair == INVALID_HEADER) {
 			logger.debug(this->id + ": failed to read header");
@@ -257,7 +257,7 @@ namespace rd {
 		if (seqn <= max_received_seqn && seqn != 1) {
 			return true;
 		}
-		max_received_seqn = seqn;	
+		max_received_seqn = seqn;
 
 		logger.info(this->id + ": was received package, bytes=%d, seqn=%d", len, seqn);
 		return len;
@@ -278,12 +278,12 @@ namespace rd {
 		const RdId rd_id{id_};
 		sz -= 8;//RdId
 		message.require_available(sz);
-		
+
 		if (!receive_pkg.read(message.data() + message.get_position(), sz - message.get_position())) {
 			logger.error(this->id + ": constructing message failed");
 			return false;
 		}
-		
+
 		logger.debug(this->id + ": message received");
 		message_broker.dispatch(rd_id, std::move(message));
 		logger.debug(this->id + ": message dispatched");
@@ -441,7 +441,7 @@ namespace rd {
 		logger.info(this->id + ": listening 127.0.0.1/" + std::to_string(port));
 		this->port = ss->GetServerPort();
 		RD_ASSERT_MSG(this->port != 0, this->id + ": port wasn't chosen")
-		
+
 		thread = std::thread([this, lifetime]() mutable {
 			while (!lifetime->is_terminated()) {
 				try {
@@ -474,7 +474,7 @@ namespace rd {
 			logger.debug(this->id + ": thread expired");
 		});
 
-		
+
 		lifetime->add_action([this] {
 			logger.info(this->id + ": start terminating lifetime");
 
